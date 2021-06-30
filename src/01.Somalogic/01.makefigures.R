@@ -124,7 +124,7 @@ dat1 <- final %>% filter((covid19_test == 1 & time_from_first_sx >= 30) | (covid
 #dat1 <- dat1 %>% filter(UMAP_POP == "EUR")
 dat1 <- dat1 %>% mutate(tmp = 1)
 tmp <- dat1 %>% nest(data = -tmp) %>%
-  mutate(fit = map(data, ~ lm(OAS1 ~ time_to_processing, data = .x)),
+  mutate(fit = map(data, ~ lm(OAS1 ~ age_at_diagnosis + sex + time_to_processing, data = .x)),
          augmented = map(fit, augment)) %>%
   unnest(augmented)
 dat1$OAS1_rev <- tmp$.std.resid
@@ -161,6 +161,18 @@ dev.off()
 
 ######### ask Mount Sinai to replicate ##################
 table(dat1$snp1, dat1$case)
+
+dat1 <- final %>% filter((covid19_test == 1 & time_from_first_sx >= 30) | (covid19_test == 0))  %>% group_by(anonymized_patient_id) %>% 
+  filter(OAS1.10361.25 == last(OAS1.10361.25)) %>% ungroup() %>%
+  distinct(anonymized_patient_id, .keep_all=TRUE)
+#dat1 <- dat1 %>% filter(UMAP_POP == "EUR")
+dat1 <- dat1 %>% mutate(tmp = 1)
+tmp <- dat1 %>% nest(data = -tmp) %>%
+  mutate(fit = map(data, ~ lm(OAS1 ~ time_to_processing, data = .x)),
+         augmented = map(fit, augment)) %>%
+  unnest(augmented)
+dat1$OAS1_rev <- tmp$.std.resid
+
 out <- data.frame(matrix(0, 6, 7))
 colnames(out) <- c("phenotype", "adj", "beta", "se", "pval", "Ncase", "Ncontrol")
 LM <- glm(A2 ~ OAS1_rev + snp1 + age_at_diagnosis + sex + PC1 + PC2 + PC3 + PC4 + PC5, data=dat1, family="binomial")
