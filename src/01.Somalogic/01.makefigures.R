@@ -64,12 +64,15 @@ final <- final %>% mutate(AKAP7 = log(AKAP7.18399.1),
                         OAS1 = log(OAS1.10361.25),
                         IRF3 = log(IRF3.17151.84))
 
-##longitudinal
+##longitudinal 
+
 dat1 <- final %>% group_by(anonymized_patient_id) %>% 
   filter(OAS1.10361.25 == last(OAS1.10361.25)) %>% ungroup() %>%
   distinct(anonymized_patient_id, .keep_all=TRUE)
 table(dat1$C2)
 
+######### ask Mount Sinai to replicate Figure 1A Figure 1B Figure 2A ##################
+#final > all longitudinal sample
 final <- final %>% mutate(tmp = 1)
 tmp <- final %>% nest(data = -tmp) %>%
   mutate(fit = map(data, ~ lm(OAS1 ~ age_at_diagnosis + sex + time_to_processing, data = .x)),
@@ -156,6 +159,7 @@ ggplot(dat1, aes(x=case, y=OAS1_rev, fill=case)) + geom_jitter(aes(color=case)) 
   scale_colour_brewer(palette="Set2") 
 dev.off()
 
+######### ask Mount Sinai to replicate ##################
 table(dat1$snp1, dat1$case)
 out <- data.frame(matrix(0, 6, 7))
 colnames(out) <- c("phenotype", "adj", "beta", "se", "pval", "Ncase", "Ncontrol")
@@ -205,9 +209,9 @@ out[6,7] <- sum(dat2$A2 == 0)
 out <- out %>% mutate(OR = exp(beta), UL = exp(beta + qnorm(0.975)*se),
                       LL = exp(beta - qnorm(0.975)*se))
 out <- out %>% mutate(phenotype = case_when(phenotype == "Critical vs Mild+Negative" ~ "Critical (32) vs Mild+Negative (195)",
-                                            phenotype == "Critical vs Mild" ~ "Critical (119) vs Mild (108)",
-                                            phenotype == "Positive vs Negative" ~ "Positive (32) vs Negative (87)"))
-out$phenotype <- factor(out$phenotype, levels = c("Critical (32) vs Mild+Negative (195)", "Critical (119) vs Mild (108)", "Positive (32) vs Negative (87)"))
+                                            phenotype == "Critical vs Mild" ~ "Critical (32) vs Mild (87)",
+                                            phenotype == "Positive vs Negative" ~ "Positive (119) vs Negative (108)"))
+out$phenotype <- factor(out$phenotype, levels = c("Critical (32) vs Mild+Negative (195)", "Critical (32) vs Mild (87)", "Positive (119) vs Negative (108)"))
 
 png("/home/richards/tomoko.nakanishi/my_project/repo/OAS1/results/Figure2B.png", width=600, height = 500)
 p1 <- ggplot(out, aes(x=adj, y=OR, ymin=LL, ymax=UL, color=adj)) +
