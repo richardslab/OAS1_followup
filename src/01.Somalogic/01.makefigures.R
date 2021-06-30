@@ -75,7 +75,7 @@ table(dat1$C2)
 #final > all longitudinal sample
 final <- final %>% mutate(tmp = 1)
 tmp <- final %>% nest(data = -tmp) %>%
-  mutate(fit = map(data, ~ lm(OAS1 ~ age_at_diagnosis + sex + time_to_processing, data = .x)),
+  mutate(fit = map(data, ~ lm(OAS1 ~ time_to_processing, data = .x)),
          augmented = map(fit, augment)) %>%
   unnest(augmented)
 final$OAS1_rev <- tmp$.std.resid
